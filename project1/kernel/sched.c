@@ -122,9 +122,10 @@
  */
 #define RUNTIME_INF	((u64)~0ULL)
 
-
 static inline int rt_policy(int policy)
 {
+	if (unlikely(policy == SCHED_FIFO || policy == SCHED_RR))
+		return 1;
 	return 0;
 }
 
@@ -2048,8 +2049,8 @@ void sched_set_stop_task(int cpu, struct task_struct *stop)
 		 * much confusion -- but then, stop work should not
 		 * rely on PI working anyway.
 		 */
-		
-		
+		sched_setscheduler_nocheck(stop, SCHED_FIFO, &param);
+
 		stop->sched_class = &stop_sched_class;
 	}
 
@@ -2838,7 +2839,10 @@ void sched_fork(struct task_struct *p)
 	 * Revert to default priority/policy on fork if requested.
 	 */
 	if (unlikely(p->sched_reset_on_fork)) {
-			
+		if (p->policy == SCHED_FIFO || p->policy == SCHED_RR) {
+			p->policy = SCHED_NORMAL;
+			p->normal_prio = p->static_prio;
+		}
 
 		if (PRIO_TO_NICE(p->static_prio) < 0) {
 			p->static_prio = NICE_TO_PRIO(0);
@@ -5081,7 +5085,8 @@ recheck:
 		reset_on_fork = !!(policy & SCHED_RESET_ON_FORK);
 		policy &= ~SCHED_RESET_ON_FORK;
 
-	if (policy != policy != SCHED_NORMAL && policy != SCHED_BATCH &&
+		if (policy != SCHED_FIFO && policy != SCHED_RR &&
+				policy != SCHED_NORMAL && policy != SCHED_BATCH &&
 				policy != SCHED_IDLE)
 			return -EINVAL;
 	}
@@ -5730,9 +5735,10 @@ SYSCALL_DEFINE1(sched_get_priority_max, int, policy)
 	int ret = -EINVAL;
 
 	switch (policy) {
-	
-	
-	
+	case SCHED_FIFO:
+	case SCHED_RR:
+		ret = MAX_USER_RT_PRIO-1;
+		break;
 	case SCHED_NORMAL:
 	case SCHED_BATCH:
 	case SCHED_IDLE:
@@ -5754,9 +5760,10 @@ SYSCALL_DEFINE1(sched_get_priority_min, int, policy)
 	int ret = -EINVAL;
 
 	switch (policy) {
-	
-	
-	
+	case SCHED_FIFO:
+	case SCHED_RR:
+		ret = 1;
+		break;
 	case SCHED_NORMAL:
 	case SCHED_BATCH:
 	case SCHED_IDLE:
@@ -5785,7 +5792,6 @@ SYSCALL_DEFINE2(sched_rr_get_interval, pid_t, pid,
 
 	if (pid < 0)
 		return -EINVAL;
-
 
 	retval = -ESRCH;
 	rcu_read_lock();
