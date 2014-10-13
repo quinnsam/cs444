@@ -1,0 +1,29 @@
+--- /home/bob/Documents/cs444/project1/kernel/sched_rt.c	2014-10-09 21:51:36.293998213 -0700
++++ /home/bob/Documents/cs444/linux-3.0.4/kernel/sched_rt.c	2011-08-29 13:56:30.000000000 -0700
+@@ -1766,8 +1766,14 @@
+ 	 * RR tasks need a special form of timeslice management.
+ 	 * FIFO tasks have no timeslices.
+ 	 */
++	if (p->policy != SCHED_RR)
++		return;
++
++	if (--p->rt.time_slice)
++		return;
++
++	p->rt.time_slice = DEF_TIMESLICE;
+ 
+-	
+ 	/*
+ 	 * Requeue to the end of queue if we are not the only element
+ 	 * on the queue:
+@@ -1793,7 +1799,9 @@
+ 	/*
+ 	 * Time slice is 0 for SCHED_FIFO tasks
+ 	 */
+-	 
++	if (task->policy == SCHED_RR)
++		return DEF_TIMESLICE;
++	else
+ 		return 0;
+ }
+ 
