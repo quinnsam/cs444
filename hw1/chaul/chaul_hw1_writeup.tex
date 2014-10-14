@@ -1,0 +1,42 @@
+\documentclass[letterpaper,10pt,notitlepage,fleqn]{article}
+
+\usepackage{nopageno} %gets rid of page numbers
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+\usepackage{geometry}
+\geometry{textheight=9in, textwidth=6.5in} %sets 1" margins 
+\newcommand{\cred}[1]{{\color{red}#1}} %command to change font to red
+\newcommand{\cblue}[1]{{\color{blue}#1}} % ...blue
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\def\name{Lawrence Chau}
+
+\parindent = 0.0 in
+\parskip = 0.2 in
+
+\title{Project 1 Write Up}
+\author{Lawrence Chau}
+
+\begin{document}
+\maketitle
+\hrule
+
+\section*{What do you think the main point of this assignment is?}
+I think the main point of this assignment is for us to familiarize ourselves with Linux and the individual source code files behind it. As someone who has never worked or seen the composition of the Linux kernel, it is interesting to see how it is composed of C files and the tasks that is split among all the files.
+\section*{How did you personally approach the problem? Design decisions, algorithm, etc.}
+I knew that our code was a modified copy of the Linux 3.0.4 kernel which meant that if I were to find the original copy online, I could run a \textit{diff} between the proper files and find out what is missing and then add them back to the modified copy. Searching for the keywords RR and FIFO, I found the keywords to be sched.c and sched\_rt.c. I then had the differences outputted as a patch and then combined the two patch files together.
+
+\section*{How did you ensure your solution was correct? Testing details, for instance.}
+To ensure that the solution was correct, the kernel was recompiled after the patch was applied to the sched.c and sched\_rt.c. The image was installed into the machine with a unique name and label which we can then check for later in the Linux kernel using \textit{uname}. 
+ 
+\section*{What did you learn?}
+I learned quite a bit from the project as I had never worked with Linux kernel before, or any part of an operating system. It was really fun getting the chance to modify something so important to the system.  
+\end{document}
