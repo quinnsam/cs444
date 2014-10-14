@@ -1,0 +1,51 @@
+\documentclass[letterpaper,10pt,notitlepage,fleqn]{article}
+
+\usepackage{nopageno} %gets rid of page numbers
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+\usepackage{geometry}
+\geometry{textheight=9in, textwidth=6.5in} %sets 1" margins 
+\newcommand{\cred}[1]{{\color{red}#1}} %command to change font to red
+\newcommand{\cblue}[1]{{\color{blue}#1}} % ...blue
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\def\name{Group 22}
+
+\parindent = 0.0 in
+\parskip = 0.2 in
+
+\title{Project 1 Write Up}
+\author{Group 22}
+
+\begin{document}
+\maketitle
+\hrule
+
+\section*{Our Solution}
+For this project, we started by grepping through the Linux kernel source code that was given to us for Project1 for the keywords RR and FIFO. When the results came back, we realized that we were missing these schedulers. After researching, we discovered that RR and FIFO are included in the Linux kernel sched.c and sched\_rt.c by default. So we did a Google search and downloaded the stock Linux 3.0.4 kernel. We then ran a \textit{diff} on those two files and found that they were missing
+cruicial scheduling functions. Knowing we had to make a patch file, we set the output of \textit{diff} command to create a patch file. Since there were two files being patched, we had to use \textit{combinediff} to merge the two patch files into one. 
+
+After we created the patch file, we ran the Linux command \textit{patch} with the patch file and it added the missing functions to the given Linux source code. To verify that our solution was correct, we compiled the code with the commands: 
+
+\begin{verbatim}make mrproper
+make menuconfig
+make dep
+make clean
+make bzImage
+make modules
+make modules_install
+cp arch/i386/boot/bzImage /boot/
+cp System.map /boot/
+mkinitrd /boot/proj1 3.0.4
+\end{verbatim}
+
+When the compiling finished, we had to edit the Grub Bootloader to allow us the choice of what kernel to use at boot time. After a few attempts, our system booted. To verify that we were using our custom kernel, we ran the command \textit{uname -r} which told us that we were indeed running our custom kernel. In addition, we also found some commands from Googling that allows us to set set specific commands to run with certain policies. By using \textit{sudo chrt-f -p 20 ls}, the command is ran with FIFO and priority 20. Likewise \textit{sudo chrt -r -p 20 ls} would be ran for RR and priority 20.   
+\end{document}
