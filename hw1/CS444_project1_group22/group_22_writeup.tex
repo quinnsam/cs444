@@ -48,4 +48,60 @@ mkinitrd /boot/proj1 3.0.4
 \end{verbatim}
 
 When the compiling finished, we had to edit the Grub Bootloader to allow us the choice of what kernel to use at boot time. After a few attempts, our system booted. To verify that we were using our custom kernel, we ran the command \textit{uname -r} which told us that we were indeed running our custom kernel. In addition, we also found some commands from Googling that allows us to set set specific commands to run with certain policies. By using \textit{sudo chrt-f -p 20 ls}, the command is ran with FIFO and priority 20. Likewise \textit{sudo chrt -r -p 20 ls} would be ran for RR and priority 20.   
+\section*{Work Log}
+\begin{verbatim}
+commit c6b83d78503058ff866f0c12e95f91705c0fc65b
+Author: bob <bob@CS444.(none)>
+Date:   Mon Oct 13 23:34:00 2014 -0700
+
+    Added Sam's final writeup and tarball.
+
+commit 20efd7c2f63a1a34f1477399ca4ac8457582414f
+Author: bob <bob@CS444.(none)>
+Date:   Mon Oct 13 23:22:35 2014 -0700
+
+    Added final version of Lawrences writeup
+
+commit a93a0dee664e6be62a3d5ab5fb05f2f80a25e820
+Author: bob <bob@CS444.(none)>
+Date:   Mon Oct 13 22:36:45 2014 -0700
+
+    Added Sams write up and make file to the quinnsa directory.
+
+commit cb8126f7ac41237c8ec0ef49151e9b3205945489
+Author: bob <bob@CS444.(none)>
+Date:   Mon Oct 13 17:09:00 2014 -0700
+
+    Modified the makefile
+
+commit 23bedbee7b8d7a57358336e34bbf3af6871dae69
+Author: bob <bob@CS444.(none)>
+Date:   Mon Oct 13 15:26:12 2014 -0700
+
+    Added all of the commands neccisary to compile and install the linux kernel from source for prohect one.
+
+commit 2a152343ac582e2fea7c26ac9fddfa8544247b21
+Author: bob <bob@CS444.(none)>
+Date:   Mon Oct 13 11:09:54 2014 -0700
+
+    Added the Hw1 directory for the final submission stuff.
+
+commit 26e563d9371892d574e2c0dd92a132353de644e8
+Author: bob <bob@CS444.(none)>
+Date:   Sun Oct 12 18:12:03 2014 -0700
+
+    Added the RR and FIFO patches to sched.c and sched_rt.c files.
+
+commit c42686d7c21e3dca09eed5cee34787711584a60e
+Author: Sam Quinn <quinnsa@os-class.engr.oregonstate.edu>
+Date:   Thu Oct 9 21:37:46 2014 -0700
+
+    Added Project #1
+
+commit fafec4e296472a9b417503cfbd7cc51c70b213ac
+Author: Sam Quinn <quinnsam1@gmail.com>
+Date:   Thu Oct 9 21:16:07 2014 -0700
+
+    Initial commit
+\end{verbatim}
 \end{document}
