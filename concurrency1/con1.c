@@ -7,55 +7,89 @@
 
 #include <pthread.h>
 #include <stdio.h>
+#include <unistd.h>
 
-/* this function is run by the second thread */
-void *inc_x(void *x_void_ptr)
-{
+pthread_mutex_t lock;
 
-    /* increment x to 100 */
-    int *x_ptr = (int *)x_void_ptr;
-    while(++(*x_ptr) < 100);
+struct Data {
+    int print;
+    int wait_time;
+};
 
-    printf("x increment finished\n");
+struct Data product[32];
 
-    /* the function must return something - NULL will do */
-    return NULL;
-
+int check_mutex(){
+    return pthread_mutex_trylock(&lock);
 }
+
+int check_empty(int index){
+    int rv = 0;
+
+    if (product[index].wait_time == -1 || product[index].print == -1) {
+        rv = 1;
+    } 
+    return rv;
+}
+/* this function is run by the second thread */
+void consumer()
+{
+    int i, time;
+    while (1){
+        if (i >= 32 ) {
+            i = 0;
+        }
+        if (!check_mutex()){
+            printf("Mutex Aquired\n");
+            if (!check_empty(i)) {
+                printf("Print: %d\n", product[i].print);
+                printf("Wait: %d\n", product[i].wait_time);
+                time = product[i].wait_time;
+                product[i].print = -1;
+                product[i].wait_time = -1;
+                sleep(time);
+            }
+            pthread_mutex_unlock(&lock);
+            printf("Mutex released\n");
+            
+        } else {
+            printf("Mutex not aquired.\n");
+        }
+        i++;
+    }
+}
+
 
 int main()
 {
-
-    int x = 0, y = 0;
-
-    /* show the initial values of x and y */
-    printf("x: %d, y: %d\n", x, y);
+    int i;
+    
+    for (i = 0; i < 32; ++i){
+        product[i].print=i;
+        product[i].wait_time=i+5;
+    }
+    
+    //Prints all the data in the array.
+    for (i = 0; i < 32; ++i){
+        printf("Print: %d\n", product[i].print);
+        printf("Wait: %d\n", product[i].wait_time);
+    }
 
     /* this variable is our reference to the second thread */
-    pthread_t inc_x_thread;
+    pthread_t consumer_thread;
 
     /* create a second thread which executes inc_x(&x) */
-    if(pthread_create(&inc_x_thread, NULL, inc_x, &x)) {
+    if(pthread_create(&consumer_thread, NULL, (void *)consumer, (void *)NULL)) {
 
         fprintf(stderr, "Error creating thread\n");
         return 1;
 
     }
-    /* increment y to 100 in the first thread */
-    while(++y < 100);
-
-    printf("y increment finished\n");
 
     /* wait for the second thread to finish */
-    if(pthread_join(inc_x_thread, NULL)) {
-
+    if(pthread_join(consumer_thread, NULL)) {
         fprintf(stderr, "Error joining thread\n");
         return 2;
-
     }
-
-    /* show the results - x is now 100 thanks to the second thread */
-    printf("x: %d, y: %d\n", x, y);
 
     return 0;
 
