@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "rand.h"
 
 pthread_mutex_t lock;
 
@@ -35,25 +36,30 @@ void consumer()
 {
     int i, time;
     while (1){
+        
         if (i >= 32 ) {
             i = 0;
         }
+
+        time = 0;
+        
         if (!check_mutex()){
-            printf("Mutex Aquired\n");
+            //printf("Mutex Aquired by Consumer\n");
             if (!check_empty(i)) {
-                printf("Print: %d\n", product[i].print);
-                printf("Wait: %d\n", product[i].wait_time);
+                printf("Consumer Printing from Index %d: %d\n", i, product[i].print);
+                printf("Consumer Waiting at Index %d: %d\n", i, product[i].wait_time);
                 time = product[i].wait_time;
                 product[i].print = -1;
                 product[i].wait_time = -1;
-                sleep(time);
             }
             pthread_mutex_unlock(&lock);
-            printf("Mutex released\n");
-            
-        } else {
-            printf("Mutex not aquired.\n");
-        }
+            //printf("Mutex released by Consumer\n");
+            sleep(time);
+
+        } 
+        //else {
+        //    printf("Consumer did not obtain Mutex.\n");
+        //}
         i++;
     }
 }
@@ -62,17 +68,17 @@ void consumer()
 int main()
 {
     int i;
-    
+    int producer_wait;
     for (i = 0; i < 32; ++i){
-        product[i].print=i;
-        product[i].wait_time=i+5;
+        product[i].print=-1;
+        product[i].wait_time=-1;
     }
-    
+
     //Prints all the data in the array.
-    for (i = 0; i < 32; ++i){
-        printf("Print: %d\n", product[i].print);
-        printf("Wait: %d\n", product[i].wait_time);
-    }
+    //for (i = 0; i < 32; ++i){
+    //    printf("Print: %d\n", product[i].print);
+    //    printf("Wait: %d\n", product[i].wait_time);
+    //}
 
     /* this variable is our reference to the second thread */
     pthread_t consumer_thread;
@@ -84,7 +90,33 @@ int main()
         return 1;
 
     }
+    while (1){
 
+        if (i >= 32 ) {
+            i = 0;
+        }
+        
+        producer_wait = 0;
+        
+        if (!check_mutex()){
+            //printf("Mutex Aquired by Producer\n");
+            if (check_empty(i)) {
+                product[i].print = rdrand_func(3);
+                product[i].wait_time = rdrand_func(1);
+                printf("Producer Inserting Value %d and Wait Time %d at Index: %d\n", product[i].print, product[i].wait_time, i);
+                producer_wait = rdrand_func(2);
+                printf("Producer is now sleeping for %d seconds\n", producer_wait);
+            }
+            pthread_mutex_unlock(&lock);
+            //printf("Mutex released by Producer\n");
+            sleep(producer_wait);
+        } 
+        
+        //else {
+          //  printf("Producer did not obtain Mutex.\n");
+        //}
+        i++;
+    }
     /* wait for the second thread to finish */
     if(pthread_join(consumer_thread, NULL)) {
         fprintf(stderr, "Error joining thread\n");
