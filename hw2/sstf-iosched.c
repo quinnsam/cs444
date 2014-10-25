@@ -17,8 +17,8 @@ struct sstf_data {
     sector_t cur_position;
 };
 
-static inline sector_t sstf_distance ( struct request *ittr, struct rewquest *sst ){
-    return abs(blk_rq_pos(ittr->cur_position) - blk_rq_pos(sst->cur_position));
+static inline sector_t sstf_distance ( sector_t ittr, sector_t sst ){
+    return abs(ittr - sst);
 }
 //static sstf_compare ( struct sstf_data *dt, struct request *rq ){
 //    if (rq->postion > dt->cur_position) {
@@ -46,43 +46,70 @@ static void sstf_merged_requests(struct request_queue *q, struct request *rq,
 static int sstf_dispatch(struct request_queue *q, int force)
 {
     struct list_head *tmp_list_head;
-	struct sstf_data *nd = q->elevator->elevator_data;
+    struct sstf_data *nd = q->elevator->elevator_data;
+    sector_t sst_sect;
+    sector_t ittr_sect;
+	struct request *sst;
+    struct request *begin;
+    struct request *ittr;
+
+    sst_sect = ULONG_MAX; // The shortest seek time sector
 
 	if (!list_empty(&nd->queue)) { // Only continue if queue is not empty
-        sector_t sst_sect = ULONG_MAX; // The shortest seek time sector
+        printk(KERN_INFO "Queue is not empty. Begining SSTF IO \n");
 
-        struct request *rq;
-		struct request *sst;
-        struct request *begin;
-        struct request *ittr;
+
 		
-        rq = list_entry(nd->queue.next, struct request, queuelist); // Pull next I/O request
-		sst = rq; // Set the initial shortes seek time 
-        begin = list_entry(sst->queue.prev, struct request, queuelist); // Starting point
+        sst = list_entry(nd->queue.next, struct request, queuelist); // Pull next I/O request
+        begin = list_entry(nd->queue.prev, struct request, queuelist); // Starting point
+
+        if (sst == begin) {
+            printk(KERN_INFO "Queue only has one value dispatching now.\n");
+            list_del_init(&sst->queuelist);
+            nd->cur_position = blk_rq_pos(sst) + blk_rq_sectors(sst);
+            printk(KERN_INFO "Dispatching shortest seek time request \n");
+            elv_dispatch_sort(q, sst);
+            return 1;
+        }
 
         list_for_each(tmp_list_head, &nd->queue) {
             ittr = list_entry(tmp_list_head, struct request, queuelist);
             
             ittr_sect = blk_rq_pos(ittr); // Get ittr cureent sector
-            
-            if (sstf_distance(ittr, nd) < sst_sect) { // Current request seek time less than sst
+            printk(KERN_INFO "The itterated sector is: %llu \n", ittr_sect);
+
+            if (sstf_distance(ittr_sect, nd->cur_position) < sstf_distance(sst_sect, nd->cur_position)) { // Current request seek time less than sst
                 if ((nd->cur_direction == FORWARD) && (ittr_sect > nd->cur_position)){ // If request is in front
                     sst = ittr;
+                    sst_sect = ittr_sect;
+                    printk(KERN_INFO "The new SSTF is: %llu, the direction is forward \n", sst_sect);
                 } else if ((nd->cur_direction == BACKWARD) && (ittr_sect < nd->cur_position)){ // If request is behind
                     sst = ittr;
+                    sst_sect = ittr_sect;
+                    printk(KERN_INFO "The new SSTF is: %llu, the direction is backwards \n", sst_sect);
+                } else {
+                    printk(KERN_INFO "There were no request in current direction switching direction now.\n");
+                    nd->cur_direction = !nd->cur_direction;
                 }
-            } else {
-                nd->cur_direction = !nd->cur_direction;
             }
         }
 
         list_del_init(&sst->queuelist);
-        nd->pos = sst_sect + blk_rq_sectors(sst);
+        nd->cur_position = sst_sect + blk_rq_sectors(sst);
+        printk(KERN_INFO "Dispatching shortest seek time request \n");
 		elv_dispatch_sort(q, sst);
 		return 1;
     }
-	nd->cur_position = ULONG_MAX/2;
+//	nd->cur_position = ULONG_MAX/2;
+//    nd->cur_direction = !nd->cur_direction;
+if (nd->cur_direction == FORWARD ) {
+    nd->cur_position = ULONG_MAX/2;
     nd->cur_direction = !nd->cur_direction;
+} else {
+    nd->cur_position = 0;
+    nd->cur_direction = !nd->cur_direction;
+}
+
     return 0;
 }
 
