@@ -56,7 +56,7 @@ static int sstf_dispatch(struct request_queue *q, int force)
     sst_sect = ULONG_MAX; // The shortest seek time sector
 
 	if (!list_empty(&nd->queue)) { // Only continue if queue is not empty
-        printk(KERN_INFO "Queue is not empty. Begining SSTF IO \n");
+        //printk(KERN_INFO "Queue is not empty. Begining SSTF IO \n");
 
 
 		
@@ -64,10 +64,10 @@ static int sstf_dispatch(struct request_queue *q, int force)
         begin = list_entry(nd->queue.prev, struct request, queuelist); // Starting point
 
         if (sst == begin) {
-            printk(KERN_INFO "Queue only has one value dispatching now.\n");
+            //printk(KERN_INFO "Queue only has one value dispatching now.\n");
             list_del_init(&sst->queuelist);
             nd->cur_position = blk_rq_pos(sst) + blk_rq_sectors(sst);
-            printk(KERN_INFO "Dispatching shortest seek time request \n");
+            //printk(KERN_INFO "Dispatching shortest seek time request \n");
             elv_dispatch_sort(q, sst);
             return 1;
         }
@@ -76,19 +76,22 @@ static int sstf_dispatch(struct request_queue *q, int force)
             ittr = list_entry(tmp_list_head, struct request, queuelist);
             
             ittr_sect = blk_rq_pos(ittr); // Get ittr cureent sector
-            printk(KERN_INFO "The itterated sector is: %llu \n", ittr_sect);
+            //printk(KERN_INFO "The itterated sector is: %llu \n", ittr_sect);
 
             if (sstf_distance(ittr_sect, nd->cur_position) < sstf_distance(sst_sect, nd->cur_position)) { // Current request seek time less than sst
                 if ((nd->cur_direction == FORWARD) && (ittr_sect > nd->cur_position)){ // If request is in front
                     sst = ittr;
                     sst_sect = ittr_sect;
-                    printk(KERN_INFO "The new SSTF is: %llu, the direction is forward \n", sst_sect);
+                    //printk(KERN_INFO "The new SSTF is: %llu, the direction is forward \n", sst_sect);
+                    printk(KERN_INFO "+");
+                    
                 } else if ((nd->cur_direction == BACKWARD) && (ittr_sect < nd->cur_position)){ // If request is behind
                     sst = ittr;
                     sst_sect = ittr_sect;
-                    printk(KERN_INFO "The new SSTF is: %llu, the direction is backwards \n", sst_sect);
+                    //printk(KERN_INFO "The new SSTF is: %llu, the direction is backwards \n", sst_sect);
+                    printk(KERN_INFO "-");
                 } else {
-                    printk(KERN_INFO "There were no request in current direction switching direction now.\n");
+                    //printk(KERN_INFO "There were no request in current direction switching direction now.\n");
                     nd->cur_direction = !nd->cur_direction;
                 }
             }
@@ -96,7 +99,7 @@ static int sstf_dispatch(struct request_queue *q, int force)
 
         list_del_init(&sst->queuelist);
         nd->cur_position = sst_sect + blk_rq_sectors(sst);
-        printk(KERN_INFO "Dispatching shortest seek time request \n");
+        //printk(KERN_INFO "Dispatching shortest seek time request \n");
 		elv_dispatch_sort(q, sst);
 		return 1;
     }
