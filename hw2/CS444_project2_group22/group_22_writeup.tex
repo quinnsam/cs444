@@ -30,9 +30,34 @@
 \hrule
 
 \section*{Our Solution}
-For this project, we started by grepping through the Linux Kernel v3.0.4 for the noop implementation that was mentioned in the assignment. We knew it was in the ../block folder and found the implementation to be in the noop-iosched.c file. Most of the functions in this C file could be kept as they were. The only changes we really made were to the data structure of a SSTF and the dispatch. Noop operates by taking the next request from a queue and then dispatching it, regardless of position. SSTF, or Shortest Seek Time First, behaves different since it selects an I/O request that is closer to its current position. As a result, we need to add two new variables to the SSTF data structure so that the function has positions to compare the values with. 
+For this project, we started by grepping through the Linux Kernel v3.0.4 for the 
+noop implementation that was mentioned in the assignment. We knew it was in the 
+../block folder and found the implementation to be in the noop-iosched.c file. 
+Most of the functions in this C file could be kept as they were. The only changes 
+we really made were to the data structure of a SSTF and the dispatch. Noop operates 
+by taking the next request from a queue and then dispatching it, regardless of 
+position. SSTF, or Shortest Seek Time First, behaves different since it selects 
+an I/O request that is closer to its current position. As a result, we need to 
+add two new variables to the SSTF data structure so that the function has 
+positions to compare the values with. 
 
-Next, we needed to heavily modify the dispatch function so that it works as a SSTF scheduler. First, we have to make sure that the queue is not empty so that we may have values to compare. The current position is then checked against the head and the direction that it is going. If it is going forward and the request is ahead of the list head, then only those values will be compared until the smallest absolute distance between the two are found. If you are going backwards, then you are only considering and comparing against the values behind the head. After the smallest absolute values is found, that I/O process is dispatched. Afterwards, the head is changed either to the front or bottom of the sector that it made the dispatch on for future dispatches. 
+Next, we needed to heavily modify the dispatch function so that it works as a 
+SSTF scheduler. Since a SSTF I/O scheduler processes I/O requests according to 
+relative position of the request to the disk head there are a few more things we needed to account for. While a I/O request could 
+the shortest distance from the disk head, however, if the request location is behind the disk head at the time it could be 
+the slowest seek time since the disk is moving in a constant direction. Our 
+algorithm takes advantage of an elevator that essentially traverses the I/O 
+queue picking up new requests on its way. Once the elevator reaches the 
+end it will flip direction and do the same but in reverse. After we initialize our elevator, we have 
+to make sure that the queue is not empty so that we may have values to compare. 
+The current position is then checked against the head and the direction that it 
+is going. If it is going forward and the request is ahead of the list head, then 
+only those values will be compared until the smallest absolute distance between 
+the two are found. If you are going backwards, then you are only considering and 
+comparing against the values behind the head. After the smallest absolute values 
+is found, that I/O process is dispatched. Afterwards, the head is changed either 
+to the front or bottom of the sector that it made the dispatch on for future 
+dispatches. 
 
 \section*{Work Log}
 
