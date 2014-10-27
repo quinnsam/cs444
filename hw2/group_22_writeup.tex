@@ -22,7 +22,7 @@
 \parindent = 0.0 in
 \parskip = 0.2 in
 
-\title{Project 1 Write Up}
+\title{Project 2 Write Up}
 \author{Group 22}
 
 \begin{document}
@@ -30,78 +30,9 @@
 \hrule
 
 \section*{Our Solution}
-For this project, we started by grepping through the Linux kernel source code that was given to us for Project1 for the keywords RR and FIFO. When the results came back, we realized that we were missing these schedulers. After researching, we discovered that RR and FIFO are included in the Linux kernel sched.c and sched\_rt.c by default. So we did a Google search and downloaded the stock Linux 3.0.4 kernel. We then ran a \textit{diff} on those two files and found that they were missing
-cruicial scheduling functions. Knowing we had to make a patch file, we set the output of \textit{diff} command to create a patch file. Since there were two files being patched, we had to use \textit{combinediff} to merge the two patch files into one. 
+For this project, we started by grepping through the Linux Kernel v3.0.4 for the noop implementation that was mentioned in the assignment. We knew it was in the ../block folder and found the implementation to be in the noop-iosched.c file. Most of the functions in this C file could be kept as they were. The only changes we really made were to the data structure of a SSTF and the dispatch. Noop operates by taking the next request from a queue and then dispatching it, regardless of position. SSTF, or Shortest Seek Time First, behaves different since it selects an I/O request that is closer to its current position. As a result, we need to add two new variables to the SSTF data structure so that the function has positions to compare the values with. 
 
-After we created the patch file, we ran the Linux command \textit{patch} with the patch file and it added the missing functions to the given Linux source code. To verify that our solution was correct, we compiled the code with the commands: 
+Next, we needed to heavily modify the dispatch function so that it works as a SSTF scheduler. First, we have to make sure that the queue is not empty so that we may have values to compare. The current position is then checked against the head and the direction that it is going. If it is going forward and the request is ahead of the list head, then only those values will be compared until the smallest absolute distance between the two are found. If you are going backwards, then you are only considering and comparing against the values behind the head. After the smallest absolute values is found, that I/O process is dispatched. Afterwards, the head is changed either to the front or bottom of the sector that it made the dispatch on for future dispatches. 
 
-\begin{verbatim}make mrproper
-make menuconfig
-make dep
-make clean
-make bzImage
-make modules
-make modules_install
-cp arch/i386/boot/bzImage /boot/
-cp System.map /boot/
-mkinitrd /boot/proj1 3.0.4
-\end{verbatim}
-
-When the compiling finished, we had to edit the Grub Bootloader to allow us the choice of what kernel to use at boot time. After a few attempts, our system booted. To verify that we were using our custom kernel, we ran the command \textit{uname -r} which told us that we were indeed running our custom kernel. In addition, we also found some commands from Googling that allows us to set set specific commands to run with certain policies. By using \textit{sudo chrt-f -p 20 ls}, the command is ran with FIFO and priority 20. Likewise \textit{sudo chrt -r -p 20 ls} would be ran for RR and priority 20.   
-\section*{Work Log}
-\begin{verbatim}
-commit c6b83d78503058ff866f0c12e95f91705c0fc65b
-Author: bob <bob@CS444.(none)>
-Date:   Mon Oct 13 23:34:00 2014 -0700
-
-    Added Sam's final writeup and tarball.
-
-commit 20efd7c2f63a1a34f1477399ca4ac8457582414f
-Author: bob <bob@CS444.(none)>
-Date:   Mon Oct 13 23:22:35 2014 -0700
-
-    Added final version of Lawrences writeup
-
-commit a93a0dee664e6be62a3d5ab5fb05f2f80a25e820
-Author: bob <bob@CS444.(none)>
-Date:   Mon Oct 13 22:36:45 2014 -0700
-
-    Added Sams write up and make file to the quinnsa directory.
-
-commit cb8126f7ac41237c8ec0ef49151e9b3205945489
-Author: bob <bob@CS444.(none)>
-Date:   Mon Oct 13 17:09:00 2014 -0700
-
-    Modified the makefile
-
-commit 23bedbee7b8d7a57358336e34bbf3af6871dae69
-Author: bob <bob@CS444.(none)>
-Date:   Mon Oct 13 15:26:12 2014 -0700
-
-    Added all of the commands neccisary to compile and install the linux kernel from source for prohect one.
-
-commit 2a152343ac582e2fea7c26ac9fddfa8544247b21
-Author: bob <bob@CS444.(none)>
-Date:   Mon Oct 13 11:09:54 2014 -0700
-
-    Added the Hw1 directory for the final submission stuff.
-
-commit 26e563d9371892d574e2c0dd92a132353de644e8
-Author: bob <bob@CS444.(none)>
-Date:   Sun Oct 12 18:12:03 2014 -0700
-
-    Added the RR and FIFO patches to sched.c and sched_rt.c files.
-
-commit c42686d7c21e3dca09eed5cee34787711584a60e
-Author: Sam Quinn <quinnsa@os-class.engr.oregonstate.edu>
-Date:   Thu Oct 9 21:37:46 2014 -0700
-
-    Added Project #1
-
-commit fafec4e296472a9b417503cfbd7cc51c70b213ac
-Author: Sam Quinn <quinnsam1@gmail.com>
-Date:   Thu Oct 9 21:16:07 2014 -0700
-
-    Initial commit
 \end{verbatim}
 \end{document}
