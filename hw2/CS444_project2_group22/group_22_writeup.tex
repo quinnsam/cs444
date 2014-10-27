@@ -34,5 +34,34 @@ For this project, we started by grepping through the Linux Kernel v3.0.4 for the
 
 Next, we needed to heavily modify the dispatch function so that it works as a SSTF scheduler. First, we have to make sure that the queue is not empty so that we may have values to compare. The current position is then checked against the head and the direction that it is going. If it is going forward and the request is ahead of the list head, then only those values will be compared until the smallest absolute distance between the two are found. If you are going backwards, then you are only considering and comparing against the values behind the head. After the smallest absolute values is found, that I/O process is dispatched. Afterwards, the head is changed either to the front or bottom of the sector that it made the dispatch on for future dispatches. 
 
-\end{verbatim}
+\section*{Work Log}
+
+\begin{center}
+    \begin{tabular}{| p{3cm} | l | l | p{5cm} |}
+        \hline
+        Date & Author & Commit & Summary \\ \hline
+        Tue Oct 14 15:00 & Sam Quinn & 9402a8ddf13ad69b80eb9bf42c294822aff87b2f & Added the Linux folder for homework \#2.
+        \\ \hline
+        Fri Oct 17 13:39 & Bob & 8daeb619e3ebf201b079b3643e83c70c119f8de0 & Coppied the Noop I/) scheduler for a template in creating the new SSTF scheduler.
+        \\ \hline
+        Wed Oct 22 18:42 & Bob & 6fbc561c60d26ea444b063b912ac01068f5fca44 & Implemented sstf\_dispatch
+        \\ \hline
+        Sat Oct 25 15:22 & Bob & 3c4249ea31657ed2d5eadf9fa9e8ac52923a38d7 & Fixed case logic in SSTF\_dispatch
+        \\ \hline
+        Sat Oct 25 15:55 & Bob & b57104fba0b40f41f79c19d08310b543f8b7f6b9 & Added a hw2 Writeup doc.
+        \\ \hline
+        Sat Oct 25 21:36 & Bob & c918023c4d2f92f087e1cd721bde987b6291fe5a & Added Sam's project 2 writeup file.
+        \\ \hline
+        Sun Oct 26 21:57 & Bob & 4737476b348f7fb7acc3b47daa5328d41d393117 & Update sstf-iosched.c fully working.
+        \\ \hline
+        Mon Oct 27 02:38 & lawrencechau & 0fad02a3acef842d3d4b7ec6d4b1ebca2781cf29 & Update group\_22\_writeup.tex, Wrote the group writeup
+        \\ \hline
+        Mon Oct 27 11:53 & Bob & 50ea3799a520d50c9ee0f32ff3bf0f7b3b56a180 & Added the patch file with our SSTF I/O Scheduler.
+        \\ \hline
+        Mon Oct 27 11:55 & Bob & e06f0b76c25ebca39a0051d0132ba7c8ad74bf54 & Added the Linux Kernel source as a git ignored file.
+        \\ \hline
+        Mon Oct 27 11:56 & Bob & 43e34595c135bd9258a2b2ceaab1e0a069a41c8b & Added untracked files from previous concurrency problem.
+        \\ \hline
+    \end{tabular}
+\end{center}
 \end{document}

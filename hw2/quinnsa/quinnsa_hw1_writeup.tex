@@ -33,22 +33,22 @@
 This was the first time I have ever modified Linux source code. It was really cool 
 to make our own I/O scheduler and actually have it work and use it for computing 
 actual tasks. It was a good learning experience in regards to  double checking 
-your solution. Since evertime you make a change you cannot simplily jsut try it out 
+your solution. Since overtime you make a change you cannot simplify just try it out 
 it really opened my eyes to re-reading my code for correctness before I save to compile.
 \section*{How did you personally approach the problem? Design decisions, algorithm, etc.}
 I personally first searched for and researched the concept of a ''Shortest Seek Time First`` 
-scheduler. After I got a basic understanding that it is essentially a FIFO algorithim 
+scheduler. After I got a basic understanding that it is essentially a FIFO algorithm 
 prioritizing I/O request closest to the read write head. After looking at the current 
-schedulers installed on the computer with the command \textit{cat /sys/block/queue/schedualer} 
-I noticed that the Noop scheduler was installed by default. I then coppied the noop schedualer 
-and adjusted the algorithim to add a desending prioritasation. Most of the stuctures I used 
-were already defined in the Noop Schedualer so transistioning was faily simple. \\ My team 
+schedulers installed on the computer with the command \textit{cat /sys/block/queue/scheduler} 
+I noticed that the Noop scheduler was installed by default. I then copied the Noop scheduler 
+and adjusted the algorithm to add a descending prioritisation. Most of the structures used 
+were already defined in the Noop Scheduler so transitioning was fairly simple. \\ My team 
 and I devised a solution that will go through the entire queue and find which I/O request 
 has the shortest seek time.
 \section*{How did you ensure your solution was correct? Testing details, for instance.}
-We tested our solution by taking advantage of the \textit{printk} function to print debuging 
-information. With the debuging print statments inplace we copied a folder with multiople files 
-into a new location and anyalized the output via serial. 
+We tested our solution by taking advantage of the \textit{printk} function to print debugging 
+information. With the debugging print statements in place we copied a folder with multiple files 
+into a new location and analyzed the output via serial. 
 \section*{What did you learn?}
-I learned how to make an I/O schedualer which i thought would ahve been much more complicated. I did however take a look at the CFQ shecuduler and notice that it is much more complex than the simple FIFO based algoritims i took advantage of. I also learned how to make a changes to source code and make the Makefile only re-compile my changes by deleting the '.o' file.
+I learned how to make an I/O scheduler which I thought would have been much more complicated. I did however take a look at the CFQ scheduler and notice that it is much more complex than the simple FIFO based algorithms I took advantage of. I also learned how to make a changes to source code and make the Makefile only re-compile my changes by deleting the '.o' file.
 \end{document}
