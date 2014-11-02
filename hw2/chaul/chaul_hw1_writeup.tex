@@ -34,22 +34,14 @@ I think the main point of these assignments so far is to help us continue get mo
 the change may be, helped us develop a firm understanding behind the workings of the scheduler. 
 
 \section*{How did you personally approach the problem? Design decisions, algorithm, etc.}
-In order to approach this problem, we had to first understand the Noop scheduler, Shortest Seek Time First schedulers, and how they prioritize I/O requests. From a bit of reading, I learned that the Noop scheduler takes the next request from the beginning of the queue and dispatches it, and appends requests to the back of the queue. It works almost like a FIFO. Shortest Seek Time First takes the position of the head, the position of the request, and the direction of the head in order to find
-the closest file to dispatch
+In order to approach this problem, we had to first understand the Noop scheduler, Shortest Seek Time First schedulers, and how they prioritize I/O requests. From a bit of reading, I learned that the Noop scheduler takes the next request from the beginning of the queue and dispatches it, and appends requests to the back of the queue. It works almost like a FIFO. Shortest Seek Time First takes the position of the head, the position of the request, and the direction of the head in order to find the closest file to dispatch. Once we understood this, we were able to start reading the noop-iosched.c.
 
-I personally first searched for and researched the concept of a ''Shortest Seek Time First`` 
-scheduler. After I got a basic understanding that it is essentially a FIFO algorithm 
-prioritizing I/O request closest to the read write head. After looking at the current 
-schedulers installed on the computer with the command \textit{cat /sys/block/queue/scheduler} 
-I noticed that the Noop scheduler was installed by default. I then copied the Noop scheduler 
-and adjusted the algorithm to add a descending prioritisation. Most of the structures used 
-were already defined in the Noop Scheduler so transitioning was fairly simple. \\ My team 
-and I devised a solution that will go through the entire queue and find which I/O request 
-has the shortest seek time.
+Overall, the noop-iosched.c contained most of the functions we needed to implement our scheduler. We really only needed to change how it handled the dispatches. First, the scheduler makes sure the queue is not empty and that there are values that it may compare. If it is going forward and the request is ahead of the list head, then only those values will be compared until the smallest absolute distance between the two are found. If you are going backwards, then you are only considering and comparing against the values behind the head. After the smallest absolute values is found, that I/O process is dispatched. Afterwards, the head is changed either to the front or bottom of the sector that it made the dispatch on for future dispatches.
+
 \section*{How did you ensure your solution was correct? Testing details, for instance.}
-We tested our solution by taking advantage of the \textit{printk} function to print debugging 
-information. With the debugging print statements in place we copied a folder with multiple files 
-into a new location and analyzed the output via serial. 
+To ensure that our solution was correct, we used the \textit{printk} function to have the kernel print messages telling us the status of the queue, where's it is dispatching, itterating, and when it changes directions. We then copied the Linux kernel folder over to the desktop and observe the behavior until we deemed it to be acceptable. There was really no way for us to actually confirm whether or not it was working but to make sure the head was changing direction every now and then.
+
 \section*{What did you learn?}
-I learned how to make an I/O scheduler which I thought would have been much more complicated. I did however take a look at the CFQ scheduler and notice that it is much more complex than the simple FIFO based algorithms I took advantage of. I also learned how to make a changes to source code and make the Makefile only re-compile my changes by deleting the '.o' file.
+I learned quite a bit about different IO schedulers, how to implement a different scheduler, and compile kernel code. It surprised me that the scheduler was only composed of a handful of functions, since I originally expected something almost impossible to understand.
+
 \end{document}
