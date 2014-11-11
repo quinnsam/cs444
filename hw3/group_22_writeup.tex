@@ -40,16 +40,36 @@
 
 \section*{Our Solution}
     We took advantage of reusing the code from the ``Linux Device Drivers'' book that 
-    was reccomneded for us to get used to programming Linux Drivers. We wanted to get 
-    a working \textit{RAM Disk} working before we impplemented our \textit{cipher}. 
+    was recommended for us to get used to programming Linux Drivers. We wanted to get 
+    a working \textit{RAM Disk} working before we implemented our \textit{cipher}. 
     We added the sbd.c text that we grabbed from the book and after a few compile warnings 
     we found a blog by ``Pat Patterson'' that said he had fixed the warnings and errors 
     from the sbd.c file from the ``Linux Device Drivers''. Once we compiled the kernel with 
     the ramdisk included it was we needed to mount it. Using the command \textit{fdisk -l} 
-    we descoverd that our new \textit{RAM Disk} was systemly mapped to \textit{/dev/sbd0} 
+    we discovered that our new \textit{RAM Disk} was mapped to \textit{/dev/sbd0} 
     since the \textit{RAM Disk} is just a unformated block of memory we decided to make a 
-    ext2 filesystem and localy mounted it to a folder. After the Disk was mounted we copied 
-    a few files to it and 
+    ext2 filesystem and locally mounted it to a folder. After the Disk was mounted we copied 
+    a few files to it and made sure it worked OK before we continued.\\
+    Finding examples and any documentation for that mater was very difficult for the 
+    \textit{Linux Crypto API} but after a bit of searching we eventually came to the conclusion 
+    that you need to
+    \begin{enumerate}
+        \item Allocate crypto API
+        \item Set cipher key
+        \item Encrypt/Decrypt one byte at a time
+        \item Free the cipher
+    \end{enumerate}
+    We attempted to use the ``Blowfish'' cipher algorithm instead of the standard ``AES'' 
+    to try something different from the few examples we came across. It was hard to use the 
+    \textit{Linux Crypto API} macros since they were fairly ambiguous. After a while of fiddling 
+    we got our Kernel to compile and boot. Once the system started we formated the drive and mounted 
+    it like we did before.\\
+    To verify that our solution was correct we took advantage of the printk function and printed the 
+    RAW data to the console before and after it was \textit{encrypted}. It was very easy to examine 
+    the differences from before and after the \textit{encryption} took place. Even though we were printing 
+    unsigned chars directly from the buffer and already couldn't read the data it was clear that something 
+    changed when the \textit{encrypted} data was printed.
+
 \section*{Work Log}
 
 \begin{center}
