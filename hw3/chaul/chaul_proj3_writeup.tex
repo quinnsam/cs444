@@ -1,0 +1,45 @@
+\documentclass[letterpaper,10pt,notitlepage,fleqn]{article}
+
+\usepackage{nopageno} %gets rid of page numbers
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+\usepackage{geometry}
+\geometry{textheight=9in, textwidth=6.5in} %sets 1" margins 
+\newcommand{\cred}[1]{{\color{red}#1}} %command to change font to red
+\newcommand{\cblue}[1]{{\color{blue}#1}} % ...blue
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\def\name{Lawrence Chau}
+
+\parindent = 0.0 in
+\parskip = 0.2 in
+
+\title{Project 3 Write Up}
+\author{Lawrence Chau}
+
+\begin{document}
+\maketitle
+\hrule
+
+\section*{What do you think the main point of this assignment is?}
+    I think the main point of this assignement is to learn about block devices, device drivers, and Linux Crypto API.
+
+\section*{How did you personally approach the problem? Design decisions, algorithm, etc.}
+    To implement the encrypted block device, we had to start off by breaking the project into two bits. First, we have to write a RAM Disk device driver which allocates a chunk of memory as a block device. Second, we need to make sure the block device encrypts and decrypts data. Although we had no idea how to write a device driver, the link to the \textit{Linux Device Driver} proved to be a useful resource as it lead us to the source code for simple block driver. The code contained the
+    instructions for initializing the block, setup of the generic disk, the requesting method, and the shutting down. Upon compilation, we recieved a few errors and warnings which were easily fixed by referring to a blog post written by Pat Paterson. His fixes were meant to port the source to Linux versions greater than 2.6.0. Finally, we had to a little more research to find out how to implement the cipher. After looking at a few examples, we were able to implement it in
+    \textit{sbd\_transfer} and tried using ''Blowfish'' as our encryption method, to no success. We ended up using a for loop to have the cipher be encrypted and decryped a byte at a time. 
+    
+\section*{How did you ensure your solution was correct? Testing details, for instance.}
+    To ensure that our solution was correct, we inserted printk statements in our code that would display unsigned characters before and after the encryption process.The encrypted data was a jumble of unsigned characters that became more jumbled after the decryption.
+
+\section*{What did you learn?}
+    We learned how the importance of reusing kernel code and the simplest part of the encryption process.
+\end{document}
