@@ -290,8 +290,10 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
 
     int delta = 0, best_delta = 0, units = SLOB_UNITS(size);
 
-    if (print_counter > 10000)
+    if (print_counter > 10000) {
         printk("Request Size: %u\n", size);
+        printk("Avalible Spaces:");
+    }
 
     slobidx_t best_size = 0;
 
@@ -302,33 +304,28 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
             aligned = (slob_t *)ALIGN((unsigned long)cur, align);
             delta = aligned - cur;
         }
-
+        if (print_counter > 10000) {
+            printk("[%u]", slob_units(cur));
+        }
+        
         if (avail >= units + delta && (best == NULL || avail - (units + delta) < best_size)) { /* room enough? */
-            //if (avail == units + delta) { /* exact fit? unlink. */
+            if (print_counter > 10000)
+                printk("\nNew Best Fit: [%u]-[%u]\n", slob_units(cur), slob_units(best));
             best_aligned = aligned;
             best_prev = prev;
             best = cur;
             best_delta = delta;
-            //best_size = slob_units(best);
             best_size = avail - (units + delta);
-            //printk("Exact Fit: [%u]-[%u]\n", slob_units(cur), slob_units(best));
-            //break;
+            
+            if (best_size == 0) { // exact fit no need to keep checking
+                break;
+            }
 
-            // } else if (avail > units + delta) { /* Room enough */
-            //     if (avail < best_size) { /* New best fit OR first iteration */
-            if (print_counter > 10000)
-                printk("New Best Fit: [%u]-[%u]\n", slob_units(cur), slob_units(best));
-            //         best_aligned = aligned;
-            //         best_prev = prev;
-            //         best_delta = delta;
-            //         best = cur;
-            //         best_size = slob_units(best);
-            //     }
-            // }
         }
-        if (slob_last(cur)) 
+        if (slob_last(cur)) { 
             break;
-    }
+        }
+    } // Loop End
 
     if (best != NULL) {
         slob_t *next = NULL;
@@ -360,10 +357,11 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
             }
             set_slob(best + units, avail - units, next);
         }
-
+        
         sp->units -= units;
-        if (!sp->units)
+        if (!sp->units) {
             clear_slob_page_free(sp);
+        }
 
         return best;
     } else {
@@ -372,24 +370,19 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
     }
 }
 
-/*
- * The helper function, slob_page_best_fit_check, goes
- * through the page's list of blocks and returns a number.
- * The number will either be -1, 0, or some positive integer. -1
- * means that there is no big enough block. 0 means a perfect
- * fitted block. Any positive integer represents the amount
- * that will be left over in the block if allocation happens. We
- * either want this number to be 0 or as low as possible for
- * best-fit algorithm.
+/* 
+ * Returns the best fitting block size for the given page.
+ * Pretty much the same as slob_page_alloc() but doesnt 
+ * actually alloc any space.
  */
-static int slob_page_best_fit_check(struct slob_page *sp, size_t size, int align)
+static int best_fit_page(struct slob_page *sp, size_t size, int align)
 {
-    //printk("Entered slob_page_best_fit_check\n");
+    //printk("Entered best_fit_page\n");
     slob_t *prev, *cur, *aligned = NULL;
     int delta = 0, units = SLOB_UNITS(size);
 
+    slobidx_t best = 0;
     slob_t *best_cur = NULL;
-    slobidx_t best_fit = 0;
 
     for (prev = NULL, cur = sp->free; ; prev = cur, cur = slob_next(cur)) {
         slobidx_t avail = slob_units(cur);
@@ -398,19 +391,24 @@ static int slob_page_best_fit_check(struct slob_page *sp, size_t size, int align
             aligned = (slob_t *)ALIGN((unsigned long)cur, align);
             delta = aligned - cur;
         }
-        if (avail >= units + delta && (best_cur == NULL || avail - (units + delta) < best_fit) ) { /* room enough? */
+
+        // First time or new best block size
+        if (avail >= units + delta && (best_cur == NULL || avail - (units + delta) < best) ) { /* room enough? */
             best_cur = cur;
-            best_fit = avail - (units + delta);
-            if(best_fit == 0)
+            best = avail - (units + delta);
+            if(best == 0)
                 return 0;
         }
+        
+        // Return best block size for this page
         if (slob_last(cur)) {
-            if (best_cur != NULL)
-                return best_fit;
-
-            return -1;
+            if (best_cur != NULL) {
+                return best;
+            } else {
+                return -1;
+            }
         }
-    }
+    } // Loop end
 }
 
 
@@ -419,9 +417,10 @@ static int slob_page_best_fit_check(struct slob_page *sp, size_t size, int align
  */
 static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 {
-    // Increment printing varible
-    if (print_counter > 10000)
+    // Increment and reset printing varible
+    if (print_counter > 10000) {
         print_counter = 0;
+    }
     ++print_counter;
 
     struct slob_page *sp;
@@ -431,7 +430,7 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 
     // Varibles for finding the best page for best fit
     struct slob_page *best_sp = NULL;
-    int best_fit = -1;
+    int best_fit = -1, fit = -1;
 
     if (size < SLOB_BREAK1)
         slob_list = &free_slob_small;
@@ -444,7 +443,9 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 
     /* Iterate through each partially free page, try to find room */
     list_for_each_entry(sp, slob_list, list) {
-        int current_fit = -1;
+        
+        fit = -1; // reset current fit size
+
 #ifdef CONFIG_NUMA
         /*
          * If there's a node specification, search for a partial
@@ -457,18 +458,19 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
         if (sp->units < SLOB_UNITS(size))
             continue;
 
-
-        current_fit = slob_page_best_fit_check(sp, size, align);
-        if (current_fit == 0) {
+        fit = best_fit_page(sp, size, align);
+        
+        if (fit == 0) { // Found a page with an exact fit
             best_sp = sp;
             break;
-        } else if (current_fit > 0 && (best_fit == -1 || current_fit < best_fit)) {
+        } else if (fit > 0 && (best_fit == -1 || fit < best_fit)) {
             best_sp = sp;
-            best_fit = current_fit;
+            best_fit = fit;
         }
         continue;
-    }
-    if (best_fit >= 0) {
+    } // End loop
+    
+    if (best_fit >= 0) { // Actually found a page
 
         /* Attempt to alloc */
         b = slob_page_alloc(best_sp, size, align);
