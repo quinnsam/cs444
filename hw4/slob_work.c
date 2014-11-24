@@ -309,8 +309,9 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
         }
         
         if (avail >= units + delta && (best == NULL || avail - (units + delta) < best_size)) { /* room enough? */
-            if (print_counter > 10000)
+            if (print_counter > 10000 && best != NULL) {
                 printk("\nNew Best Fit: [%u]-[%u]\n", slob_units(cur), slob_units(best));
+            }
             best_aligned = aligned;
             best_prev = prev;
             best = cur;
@@ -345,7 +346,6 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
         if (avail == units) { /* exact fit? unlink. */
             if (best_prev) {
                 set_slob(best_prev, slob_units(best_prev), next);
-                //printk("Exact Fit: [%u]-[%u]\n", slob_units(cur), slob_units(best));
             } else {
                 sp->free = next;
             }
@@ -381,7 +381,7 @@ static int best_fit_page(struct slob_page *sp, size_t size, int align)
     slob_t *prev, *cur, *aligned = NULL;
     int delta = 0, units = SLOB_UNITS(size);
 
-    slobidx_t best = 0;
+    slobidx_t best = -1;
     slob_t *best_cur = NULL;
 
     for (prev = NULL, cur = sp->free; ; prev = cur, cur = slob_next(cur)) {
@@ -430,7 +430,7 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 
     // Varibles for finding the best page for best fit
     struct slob_page *best_sp = NULL;
-    int best_fit = -1, fit = -1;
+    int best_fit = -1;
 
     if (size < SLOB_BREAK1)
         slob_list = &free_slob_small;
@@ -444,7 +444,7 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
     /* Iterate through each partially free page, try to find room */
     list_for_each_entry(sp, slob_list, list) {
         
-        fit = -1; // reset current fit size
+        int fit = -1; // reset current fit size
 
 #ifdef CONFIG_NUMA
         /*
@@ -472,8 +472,10 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
     
     if (best_fit >= 0) { // Actually found a page
 
-        /* Attempt to alloc */
-        b = slob_page_alloc(best_sp, size, align);
+        if (best_sp != NULL) {
+            /* Attempt to alloc */
+            b = slob_page_alloc(best_sp, size, align);
+        }
     }
 
     spin_unlock_irqrestore(&slob_lock, flags);
