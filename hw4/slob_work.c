@@ -269,11 +269,6 @@ static void slob_free_pages(void *b, int order)
     free_pages((unsigned long)b, order);
 }
 
-static inline void printkc(char *mess) {
-    if ( print_counter > 10000 ) {
-        printk(mess);
-    }
-}
 
 /*
  * Allocate a slob block within a given slob_page sp.
@@ -289,11 +284,13 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
     slobidx_t avail;
 
     int delta = 0, best_delta = 0, units = SLOB_UNITS(size);
+    int print = 0;
 
-    if (print_counter > 10000) {
-        printk("Request Size: %u\n", size);
+    if (print_counter > 5000) {
+        print = 1;
+        printk("Request Size: %u\n", units);
         printk("Avalible Spaces:");
-    }
+    } 
 
     slobidx_t best_size = 0;
 
@@ -304,14 +301,14 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
             aligned = (slob_t *)ALIGN((unsigned long)cur, align);
             delta = aligned - cur;
         }
-        if (print_counter > 10000) {
+        if (print) {
             printk("[%u]", slob_units(cur));
         }
         
         if (avail >= units + delta && (best == NULL || avail - (units + delta) < best_size)) { /* room enough? */
-            if (print_counter > 10000 && best != NULL) {
-                printk("\nNew Best Fit: [%u]-[%u]\n", slob_units(cur), slob_units(best));
-            }
+            //if (print && best != NULL) {
+            //    printk("\nNew Best Fit: [%u], Old: [%u]\n", slob_units(cur), slob_units(best));
+            //}
             best_aligned = aligned;
             best_prev = prev;
             best = cur;
@@ -329,6 +326,10 @@ static void *slob_page_alloc(struct slob_page *sp, size_t size, int align)
     } // Loop End
 
     if (best != NULL) {
+        if (print) {
+            printk(", Best: %u\n", slob_units(best));
+        }
+        
         slob_t *next = NULL;
         avail = slob_units(best);
 
@@ -418,7 +419,7 @@ static int best_fit_page(struct slob_page *sp, size_t size, int align)
 static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 {
     // Increment and reset printing varible
-    if (print_counter > 10000) {
+    if (print_counter > 5000) {
         print_counter = 0;
     }
     ++print_counter;
