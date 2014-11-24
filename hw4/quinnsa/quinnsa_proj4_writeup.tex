@@ -1,0 +1,75 @@
+\documentclass[letterpaper,10pt,notitlepage,fleqn]{article}
+
+\usepackage{nopageno} %gets rid of page numbers
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+\usepackage{geometry}
+\geometry{textheight=9in, textwidth=6.5in} %sets 1" margins 
+\newcommand{\cred}[1]{{\color{red}#1}} %command to change font to red
+\newcommand{\cblue}[1]{{\color{blue}#1}} % ...blue
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\def\name{Sam Quinn}
+
+\parindent = 0.0 in
+\parskip = 0.2 in
+
+\title{Project 3 Write Up}
+\author{Sam Quinn}
+
+\begin{document}
+\maketitle
+\hrule
+
+\section*{What do you think the main point of this assignment is?}
+    I think the main point of this assignment was to incorporate existing source 
+    code provided by the Linux Kernel in to a new function. There is a lot of reusable 
+    code within the Linux kernel and when ever possible you should use that instead 
+    of trying to implement it yourself. I think that since there was little documentation 
+    on the \textit{Linux Crypto API} it made us have to analyze the source code 
+    directly which is not an easy task.
+
+\section*{How did you personally approach the problem? Design decisions, algorithm, etc.}
+    I first wanted to implement a \textit{RAM Disk} without encryption and then implement 
+    the encryption portion later. After doing some research on \textit{RAM Disks} 
+    I found that there is a command that you can create a \textit{RAM Drive} but 
+    to have it \textbf{Encrypt} and \textbf{Decrypt} in the background without any 
+    configuring I needed to create a Driver within the Kernel. I read the LDD3 section 
+    on creating a Linux \textit{RAM Disk} driver and began to examine the source 
+    code provided. I continued my research and found a blog post by ``Pat Paterson'' 
+    which took the same source code provided by LDD3 book and fixed many of the 
+    compile errors that would occur with Linux Kernel 2.6 and up. I took his code 
+    which looks fairly identical to the one out of the book and implemented it in 
+    to our Kernel. Once it booted and I figured out how to mount it we began the 
+    wild goose chase of figuring out how to implement the Linux crypto API. We came 
+    across a few example which described the process allocate cipher, initialize 
+    key, encrypt/decrypt, and then free the cipher. After we got that information 
+    we began to implement it into our RAM Disk. While every example we found online 
+    about the ciphers used ``AES'' as their encryption method. Trying to stand out 
+    we at first tried to implement the ``Blowfish'' cipher, which ended up not working.
+    We eventually got the cipher to encrypt and decrypt one byte at a time which 
+    requires us to loop through our data to encrypt and decrypt.
+
+\section*{How did you ensure your solution was correct? Testing details, for instance.}
+    We implemented a few printk statements that would display the data as unsigned 
+    chars before and after the encryption. It was quite easy to see that the data 
+    which was already quite foreign because it was all numbers was getting more 
+    jumbled after the encryption process. Even when the data being passed through 
+    the cipher are all zeros you can see that the output became something else.
+
+\section*{What did you learn?}
+    This project interested me a lot. I am currently going in to the security field 
+    of computer science and this was the fist time that I have worked with encryption 
+    at this low of a level. I think that I might even try to implement the same 
+    concept to one of my extraneous drive in my personal computer. I learned 
+    how to take advantage of reusable code within the Linux Kernel as well as 
+    get first hand experience in the exact field I hope to be apart of after school.
+\end{document}
