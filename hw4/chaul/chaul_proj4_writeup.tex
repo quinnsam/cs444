@@ -1,0 +1,42 @@
+\documentclass[letterpaper,10pt,notitlepage,fleqn]{article}
+
+\usepackage{nopageno} %gets rid of page numbers
+\usepackage{alltt}                                           
+\usepackage{float}
+\usepackage{color}
+\usepackage{url}
+\usepackage{balance}
+\usepackage[TABBOTCAP, tight]{subfigure}
+\usepackage{enumitem}
+\usepackage{pstricks, pst-node}
+\usepackage{geometry}
+\geometry{textheight=9in, textwidth=6.5in} %sets 1" margins 
+\newcommand{\cred}[1]{{\color{red}#1}} %command to change font to red
+\newcommand{\cblue}[1]{{\color{blue}#1}} % ...blue
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{listings}
+
+\def\name{Lawrence Chau}
+
+\parindent = 0.0 in
+\parskip = 0.2 in
+
+\title{Project 4 Write Up}
+\author{Lawrence Chau}
+
+\begin{document}
+\maketitle
+\hrule
+
+\section*{What do you think the main point of this assignment is?}
+    The main part of this assignment is to understand the process of memory allocation, specifically the main one that is implemented in the 3.0.4 version of the Linux Kernel. This version uses a memory allocator called SLOB or ''Simple List of Blocks'' that operates on a first-fit algorithm. We are attempting to implement a different algorithm known as the best-fit, and understand how differently they work. 
+\section*{How did you personally approach the problem? Design decisions, algorithm, etc.}
+   To approach this problem, we had to disect the SLOB allocator and where the algorithm for the first-fit algorithm is carried out. After searching through the code, we see that the allocation process is done in \textit{slob\_page\_alloc()} and that it works by allocating the first space that can match the request. When we first attempted to modify this function to satisfy our best-fit algorithm, we did not check every single page for the best-fitting block. We had to then create a
+   function called \textit{best\_page()} that will return the best-fitting block within the page whose address is stored and used to compare against the other pages. However, if it finds a block whose size matches up exactly with the request size, it will proceed to allocate immediately. In most cases, the best-fit algorithm caused a very negative impact on our performance since the function has to scan all the blocks in every page for the best-fit before scanning all the blocks of that page once again for that best-fit. 
+\section*{How did you ensure your solution was correct? Testing details, for instance.}
+    To ensure that our best-fit algorithm was implemented correctly, we inserted printk messages in our code. These print functions outputed the size of the request, the size of the available blocks, and block that best-fits the request. The algorithm displayed that it found the best-fit, in exchange for a drop in performance. This was to be expected and enough to convince us that our solution was correct. 
+\section*{What did you learn?}
+    I learned about the process of memory allocation. One thing that really surprised everyone in our group was the amount of requests that were made when we tried to output all of them and the process it takes to search for a best-fit block for said request.
+   
+\end{document}
