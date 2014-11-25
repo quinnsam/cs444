@@ -30,48 +30,80 @@
 \hrule
 
 \section*{Our Plan}
-    
+  To implement our best fit memory allocation algorithm we will first have to 
+  understand how the current slob allocator works. After a quick search the stock 
+  slob memory allocator is built with the first fit algorithm. This means that 
+  the first page with that has enough room for the current memory allocation request 
+  is used. Within the page the first block that can fit the requested memory is 
+  also use. \\
+  What we need to do is instead of jumping on the fist space available that the 
+  request can fit into, we need to find the best fitting space. To find the best 
+  fitting space we must first look though all of the available spaces to determine 
+  which would fit the requests need the best. Once the best fit is found we then 
+  allocate the memory there. One thing that we need to check for is that we are 
+  checking each page for the best fit block size. 
 \section*{Our Solution}
-   
+   Within the \textit{slob\_alloc()} function the first page that comes along is 
+   sent to the \textit{slob\_page\_alloc()} function for allocation. We created 
+   a \textit{best\_page()} function that will return the best fitting block within 
+   the current page. This is used to compare each page with each other to ensure 
+   that we indeed have the best fit. The \textit{best\_page()} function is essentially 
+   the same as the \textit{slob\_page\_alloc()} function without the allocating 
+   code.\\
+   Once we have the best page within the \textit{slob\_page\_alloc()} function we 
+   find the best block for the current request. We use the same loop as \textit{best\_page()} 
+   function but once the end of the loop is reached it begins to allocate the memory 
+   instead for just returning a number. In the case that the current block being 
+   checked if it is the new best is the same size as the current request the loop 
+   is short circuited because there is no better fit than the same size.\\ 
+   The best fit algorithm is very slow. There are a lot of request for memory allocation 
+   and each time every page has to be checked then each block within that page. 
+   The only performance increase we have implemented in our algorithm is the short 
+   circuit of an exact fit.
 \section*{Work Log}
 
 \begin{center}
     \begin{tabular}{| p{3cm} | l | l | p{5cm} |}
         \hline
         \textbf{Date} & \textbf{Author} & \textbf{Commit} & \textbf{Summary} \\ \hline
-        Wed Nov 5 19:25 & Bob & 3f23e27044ff6f1d896075a36974c258c17a84f4 & Finnished Makefile and tar.bz2 for Concurrency 3.
+        Sun Nov 16 13:03 & Bob & cb489e02673be2a13b4a2ebbc13bf585aa08068f & Added project 4 directory.
         \\ \hline
-        Wed Nov 5 19:21 & Bob & ce1c354c64c832cd137e17617b258c1c116034e0 & Finnised concurrency 3.
+       Wed Nov 19 13:46 & Sam Quinn & 800d9d0d0aa8b69d2677bd601e4d40e6cfaad4b2 & Need to do some work still on slob.c
         \\ \hline
-        Sun Nov 2 12:20 & Bob & 8feccdab21ba8750a0c5e9efe128aa44aa4fd3c4 & Merge branch 'master' of github.com:quinnsam/cs444
+        Thu Nov 20 13:42 & Bob & fe7d942416b0c54094a67dee2512c12ce5950038 & Think it should best fit slob should work first compile, Lets see.
         \\ \hline
-        Sun Nov 2 12:20 & Bob & 2cebcc999819ba670771c438eb14f813e99fc989 & Added hw3 folder and some documentation.
+        Sat Nov 22 11:13 & Bob & 91a9b3fe4cbf75fce38587c4a4243d1d912505bb & Fixed loop problem in the slob alloc where it tries to find the best page.
         \\ \hline
-        Mon Nov 10 10:45 & Sam Quinn & b907ba3f829fae8178c7a05eb62e925eed699f56 & Added a working version of the encrypted Ramdisk.
+        Sat Nov 22 20:12 & Bob & f1531eccc1b9c35f694c6f2521c168d39fd055e7 & I think this works but need to fix some modules.
         \\ \hline
-        Mon Nov 10 10:49 & Bob & 3899e2b81125105ff1e1c6d3c08b6e7e4e8b152f & Added a mounting shell script to mount the encrypted ramdisk in one command.
+        Sun Nov 23 15:33 & Bob & 2c2974b3185917312246db0d0b93e86bc0290684 & Fixed some print statements and added some more comments.
         \\ \hline
-        Mon Nov 10 10:53 & Bob & 3d5d384d6174a0667bb7c0b07e0bd21702b8151f &  Added original unecrypted ramdisk code from LLD3
+        Sun Nov 23 20:44 & Bob & ea095bc6fb797c1caacaa52e863de4f09fc10ba7 & Fixed the memorry leak.
         \\ \hline
-        Mon Nov 10 10:56 & Bob & 3a9436d55efb23125f914d22181830a5e5f2d85d & Updated the .gitignore file.
+        Mon Nov 24 09:58 & Bob & df181b728215f052c633fcbcc955f1c75390a481 & Final version of the bestfit slob algorithim.
         \\ \hline
-        Mon Nov 10 11:01 & Bob & 93a01769fcd7d5cb670419a7c68baa4a91dda6a6 & Added the outline for Sam's Writeup.
-        \\ \hline
-        Mon Nov 10 18:08 & Bob & 689a1ac1ff20bd4d32c1f318984277c05cb8cf85 & Updated Sam's writeup with finished version.
-        \\ \hline
-        Mon Nov 10 18:09 & Bob & e9e015e98d3b8e04c2a8762b4af20029ce72245a & Added a pdf version of Sam;s Writeup.
-        \\ \hline
-        Mon Nov 10 18:13 & Bob & b3e07347b213607769bfcf75739449ecc6a4be62 & Added the tar ball for Sam's writeup.
-        \\ \hline
-        Mon Nov 10 18:27 & Bob & e744aa955ac823fb16abccbf23752374e396500f & Added the kernel patch file for the encrypted ram disk.
-        \\ \hline
-        Mon Nov 10 20:53 & Bob & cd1a064e295c87c3cafeee62842ca5b379735bc3 & Added the group Writeup tex and makefile
-        \\ \hline
-        Mon Nov 10 21:12 & Bob & af5c9f7eab1da3f867639174c34c4a1b97f2a394 & Finnished the group witeup.
+        Mon Nov 24 10:04 & Bob & c83a3017298cf8a6e70cce375344ca460c38d402 & Added writeup files.
         \\ \hline
     \end{tabular}
 \end{center}
 \end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
